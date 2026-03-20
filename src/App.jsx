@@ -6,6 +6,7 @@ const STEPS = [
 ];
 
 const INTEREST_OPTIONS = [
+  { id: "cars", label: "Cars", icon: "🚗" },
   { id: "cooking", label: "Cooking", icon: "🍳" },
   { id: "babysitting", label: "Babysitting", icon: "👶" },
   { id: "petcare", label: "Pet Care", icon: "🐕" },
