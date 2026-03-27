@@ -22,7 +22,6 @@ const AVAILABILITY_OPTIONS = [
   { id: "saturday", label: "Saturdays", icon: "📅" },
   { id: "sunday", label: "Sundays", icon: "📅" },
   { id: "summer", label: "Summer Break", icon: "🌞" },
-  { id: "winter", label: "Winter Break", icon: "❄️" },
 ];
 
 const DISTANCE_OPTIONS = [
@@ -54,7 +53,7 @@ export default function App() {
     firstName: "", lastName: "", dob: "", gender: "",
     genderCustom: "", interests: [], customInterest: "",
     experiences: [], availability: [], distance: "",
-    email: "", phone: "", zipCode: "",
+    email: "", phone: "", zipCode: "", contactPreference: "",
   });
 
   /* ─── Poster data ─── */
@@ -130,24 +129,19 @@ export default function App() {
   const canProceed = () => {
     switch (currentStep) {
       case "role": return !!role;
-      // Seeker
-      case "name": return seeker.firstName.trim() && seeker.lastName.trim();
-      case "dob": return !!seeker.dob;
-      case "gender": return !!seeker.gender && (seeker.gender !== "custom" || seeker.genderCustom.trim());
-      case "interests": return seeker.interests.length > 0;
-      case "experience": return true;
-      case "availability": return seeker.availability.length > 0;
-      case "distance": return !!seeker.distance;
-      case "contact": return seeker.email.trim() && seeker.zipCode.trim();
-      case "seekerReview": return true;
-      // Poster
-      case "businessInfo": return poster.companyName.trim() && poster.contactName.trim() && poster.contactEmail.trim() && poster.companyZip.trim();
-      case "jobDetails": return poster.jobTitle.trim() && poster.jobCategory.length > 0;
-      case "jobRequirements": return true;
-      case "jobSchedulePay": return poster.payMin.trim() && poster.schedule.length > 0;
-      case "jobLocation": return poster.jobZip.trim() || poster.isRemote;
-      case "posterReview": return true;
-      default: return false;
+      // All other steps return true for demo purposes
+      // case "name": return seeker.firstName.trim() && seeker.lastName.trim();
+      // case "dob": return !!seeker.dob;
+      // case "gender": return !!seeker.gender && (seeker.gender !== "custom" || seeker.genderCustom.trim());
+      // case "interests": return seeker.interests.length > 0;
+      // case "availability": return seeker.availability.length > 0;
+      // case "distance": return !!seeker.distance;
+      // case "contact": return seeker.email.trim() && seeker.zipCode.trim();
+      // case "businessInfo": return poster.companyName.trim() && poster.contactName.trim() && poster.contactEmail.trim() && poster.companyZip.trim();
+      // case "jobDetails": return poster.jobTitle.trim() && poster.jobCategory.length > 0;
+      // case "jobSchedulePay": return poster.payMin.trim() && poster.schedule.length > 0;
+      // case "jobLocation": return poster.jobZip.trim() || poster.isRemote;
+      default: return true;
     }
   };
 
@@ -309,6 +303,17 @@ function StepDOB({ v, set, age }) {
           <span className="gs-age-label">years old</span>
         </div>
       )}
+      {age !== null && (age < 14 || age > 18) && (
+        <div style={{
+          marginTop: 12, padding: "10px 14px",
+          background: "rgba(245,158,11,0.12)",
+          border: "1px solid rgba(245,158,11,0.35)",
+          borderRadius: 12, color: "#FCD34D",
+          fontSize: 13, lineHeight: 1.5,
+        }}>
+          ⚠️ GigSpark is primarily designed for teens aged 14–18. Opportunities may be limited outside this range.
+        </div>
+      )}
     </div>
   );
 }
@@ -440,6 +445,17 @@ function StepContact({ d, set }) {
       <h2 className="gs-title">How can we reach you?</h2>
       <p className="gs-desc">We'll never spam you — promise.</p>
       <div className="gs-field">
+        <label className="gs-label">Preferred Contact Method</label>
+        <select className="gs-input" value={d.contactPreference}
+          onChange={e => set("contactPreference", e.target.value)}
+          style={{ appearance: "none", WebkitAppearance: "none", cursor: "pointer" }}>
+          <option value="" style={{ background: "#1A1A2E" }}>Select a method...</option>
+          <option value="email" style={{ background: "#1A1A2E" }}>Email</option>
+          <option value="phone" style={{ background: "#1A1A2E" }}>Phone/Text</option>
+          <option value="either" style={{ background: "#1A1A2E" }}>Either</option>
+        </select>
+      </div>
+      <div className="gs-field">
         <label className="gs-label">Email *</label>
         <input type="email" className="gs-input" value={d.email}
           onChange={e => set("email", e.target.value)} placeholder="you@email.com" />
@@ -493,6 +509,13 @@ function SeekerReview({ d, age }) {
       <RevTags label="Availability" tags={aLabels} />
       <Rev label="Distance" val={dist ? `${dist.icon} ${dist.label} — ${dist.desc}` : ""} />
       <Rev label="Contact" val={<>{d.email}{d.phone && ` · ${d.phone}`}<br />Zip: {d.zipCode}</>} />
+      {d.contactPreference && (
+        <Rev label="Preferred Contact" val={
+          d.contactPreference === "email" ? "Email"
+          : d.contactPreference === "phone" ? "Phone/Text"
+          : "Either"
+        } />
+      )}
     </div>
   );
 }
@@ -743,22 +766,32 @@ function PosterReview({ d }) {
     <div>
       <h2 className="gs-title">Review your job posting</h2>
       <p className="gs-desc">Make sure everything looks good before posting.</p>
-      <Rev label="Company" val={d.companyName} />
-      <Rev label="Contact" val={<>{d.contactName}<br />{d.contactEmail}{d.contactPhone && ` · ${d.contactPhone}`}</>} />
-      <Rev label="Job Title" val={d.jobTitle} />
-      {d.jobDesc && <Rev label="Description" val={d.jobDesc} />}
-      <RevTags label="Category" tags={catLabels} />
-      <Rev label="Positions" val={d.positionsCount} />
-      <Rev label="Min Age" val={`${d.minAge}+`} />
-      {d.skills && <Rev label="Skills" val={d.skills} />}
-      {d.dressCode && <Rev label="Dress Code" val={d.dressCode} />}
-      {d.requirements && <Rev label="Other" val={d.requirements} />}
-      <Rev label="Pay" val={payLabel} />
-      {d.hoursPerWeek && <Rev label="Hours/Week" val={d.hoursPerWeek} />}
-      <RevTags label="Schedule" tags={schedLabels} />
-      {d.startDate && <Rev label="Start Date" val={d.startDate} />}
-      <Rev label="Location" val={d.isRemote ? "🏠 Remote"
-        : <>{d.jobAddress && `${d.jobAddress}, `}{d.jobCity && `${d.jobCity}, `}{d.jobState} {d.jobZip}</>} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <Rev label="Company" val={d.companyName} />
+        <Rev label="Job Title" val={d.jobTitle} />
+        <div style={{ gridColumn: "1 / -1" }}>
+          <Rev label="Contact" val={<>{d.contactName}<br />{d.contactEmail}{d.contactPhone && ` · ${d.contactPhone}`}</>} />
+        </div>
+        {d.jobDesc && <div style={{ gridColumn: "1 / -1" }}><Rev label="Description" val={d.jobDesc} /></div>}
+        <div style={{ gridColumn: "1 / -1" }}>
+          <RevTags label="Category" tags={catLabels} />
+        </div>
+        <Rev label="Positions" val={d.positionsCount} />
+        <Rev label="Min Age" val={`${d.minAge}+`} />
+        {d.skills && <div style={{ gridColumn: "1 / -1" }}><Rev label="Skills" val={d.skills} /></div>}
+        {d.dressCode && <Rev label="Dress Code" val={d.dressCode} />}
+        {d.requirements && <div style={{ gridColumn: "1 / -1" }}><Rev label="Other" val={d.requirements} /></div>}
+        <Rev label="Pay" val={payLabel} />
+        {d.hoursPerWeek && <Rev label="Hours/Week" val={d.hoursPerWeek} />}
+        <div style={{ gridColumn: "1 / -1" }}>
+          <RevTags label="Schedule" tags={schedLabels} />
+        </div>
+        {d.startDate && <Rev label="Start Date" val={d.startDate} />}
+        <div style={{ gridColumn: "1 / -1" }}>
+          <Rev label="Location" val={d.isRemote ? "🏠 Remote"
+            : <>{d.jobAddress && `${d.jobAddress}, `}{d.jobCity && `${d.jobCity}, `}{d.jobState} {d.jobZip}</>} />
+        </div>
+      </div>
     </div>
   );
 }
